@@ -1,1 +1,1 @@
-# Mini-Activity-Reminder
+# Mini-Activity-App
