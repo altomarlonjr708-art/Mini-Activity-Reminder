@@ -4,11 +4,15 @@ import 'package:provider/provider.dart';
 import 'data/app_database.dart';
 import 'data/task_provider.dart';
 import 'data/task_repository.dart';
+import 'services/notification_service.dart';
 import 'ui/app_shell.dart';
 import 'ui/app_theme.dart';
 import 'ui/theme_controller.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.initialize();
+
   final database = AppDatabase();
   final taskRepository = TaskRepository(database);
 

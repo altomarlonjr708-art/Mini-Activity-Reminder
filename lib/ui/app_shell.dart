@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/notification_service.dart';
+
 import 'home_screen.dart';
 import 'task_form_screen.dart';
 
@@ -24,7 +26,7 @@ class _AppShellState extends State<AppShell> {
     HomeScreen(),
     _PlaceholderScreen(title: 'Calendar', icon: Icons.calendar_month),
     _PlaceholderScreen(title: 'Stats', icon: Icons.bar_chart),
-    _PlaceholderScreen(title: 'Settings', icon: Icons.settings),
+    _SettingsPlaceholder(),
   ];
 
   @override
@@ -49,6 +51,51 @@ class _AppShellState extends State<AppShell> {
               child: const Icon(Icons.add),
             )
           : null,
+    );
+  }
+}
+
+class _SettingsPlaceholder extends StatelessWidget {
+  const _SettingsPlaceholder();
+
+  Future<void> _requestAndTest(BuildContext context) async {
+    final granted = await NotificationService.requestNotificationPermission();
+    if (!context.mounted) return;
+
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notification permission is required for reminders')),
+      );
+      return;
+    }
+
+    await NotificationService.scheduleTestNotification();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Test reminder scheduled for 10 seconds')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.notifications_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 12),
+            Text('Settings', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () => _requestAndTest(context),
+              icon: const Icon(Icons.notifications_active),
+              label: const Text('Test scheduled notification'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
