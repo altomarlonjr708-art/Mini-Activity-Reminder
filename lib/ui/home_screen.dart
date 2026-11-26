@@ -6,8 +6,17 @@ import '../data/task_provider.dart';
 import '../domain/task.dart';
 import 'task_form_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _search = '';
+  TaskType? _typeFilter;
+  TaskPriority? _priorityFilter;
 
   bool _sameDay(DateTime first, DateTime second) {
     return first.year == second.year && first.month == second.month && first.day == second.day;
@@ -18,7 +27,12 @@ class HomeScreen extends StatelessWidget {
     return Consumer<TaskProvider>(
       builder: (context, provider, _) {
         final now = DateTime.now();
-        final tasks = [...provider.tasks]..sort((a, b) => a.dueAt.compareTo(b.dueAt));
+        var tasks = provider.tasks.where((task) {
+          final matchesSearch = _search.isEmpty || task.title.toLowerCase().contains(_search.toLowerCase()) || task.notes.toLowerCase().contains(_search.toLowerCase());
+          final matchesType = _typeFilter == null || task.type == _typeFilter;
+          final matchesPriority = _priorityFilter == null || task.priority == _priorityFilter;
+          return matchesSearch && matchesType && matchesPriority;
+        }).toList()..sort((a, b) => a.dueAt.compareTo(b.dueAt));
         final overdue = tasks.where((task) => !task.completed && task.dueAt.isBefore(now) && !_sameDay(task.dueAt, now)).toList();
         final today = tasks.where((task) => !task.completed && _sameDay(task.dueAt, now)).toList();
         final upcoming = tasks.where((task) => !task.completed && task.dueAt.isAfter(now) && !_sameDay(task.dueAt, now)).toList();
@@ -42,6 +56,45 @@ class HomeScreen extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.only(bottom: 88),
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: TextField(
+                decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Search tasks', border: OutlineInputBorder()),
+                onChanged: (value) => setState(() => _search = value),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(child: DropdownButton<TaskType>(
+                    isExpanded: true,
+                    value: _typeFilter,
+                    hint: const Text('All types'),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('All types')),
+                      DropdownMenuItem(value: TaskType.schoolProject, child: Text('School project')),
+                      DropdownMenuItem(value: TaskType.activity, child: Text('Activity')),
+                      DropdownMenuItem(value: TaskType.other, child: Text('Other')),
+                    ],
+                    onChanged: (value) => setState(() => _typeFilter = value),
+                  )),
+                  const SizedBox(width: 12),
+                  Expanded(child: DropdownButton<TaskPriority>(
+                    isExpanded: true,
+                    value: _priorityFilter,
+                    hint: const Text('All priorities'),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('All priorities')),
+                      DropdownMenuItem(value: TaskPriority.low, child: Text('Low')),
+                      DropdownMenuItem(value: TaskPriority.medium, child: Text('Medium')),
+                      DropdownMenuItem(value: TaskPriority.high, child: Text('High')),
+                    ],
+                    onChanged: (value) => setState(() => _priorityFilter = value),
+                  )),
+                ],
+              ),
+            ),
             if (overdue.isNotEmpty) _TaskSection(title: 'Overdue', tasks: overdue),
             if (today.isNotEmpty) _TaskSection(title: 'Today', tasks: today),
             if (upcoming.isNotEmpty) _TaskSection(title: 'Upcoming', tasks: upcoming),

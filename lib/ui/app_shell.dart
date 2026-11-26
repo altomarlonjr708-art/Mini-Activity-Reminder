@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../services/notification_service.dart';
+import 'theme_controller.dart';
 
+import 'calendar_screen.dart';
 import 'home_screen.dart';
+import 'stats_screen.dart';
 import 'task_form_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -24,8 +28,8 @@ class _AppShellState extends State<AppShell> {
 
   static const _screens = <Widget>[
     HomeScreen(),
-    _PlaceholderScreen(title: 'Calendar', icon: Icons.calendar_month),
-    _PlaceholderScreen(title: 'Stats', icon: Icons.bar_chart),
+    CalendarScreen(),
+    StatsScreen(),
     _SettingsPlaceholder(),
   ];
 
@@ -55,8 +59,14 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-class _SettingsPlaceholder extends StatelessWidget {
+class _SettingsPlaceholder extends StatefulWidget {
   const _SettingsPlaceholder();
+
+  @override
+  State<_SettingsPlaceholder> createState() => _SettingsPlaceholderState();
+}
+
+class _SettingsPlaceholderState extends State<_SettingsPlaceholder> {
 
   Future<void> _requestAndTest(BuildContext context) async {
     final granted = await NotificationService.requestNotificationPermission();
@@ -78,47 +88,37 @@ class _SettingsPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.notifications_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 12),
-            Text('Settings', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () => _requestAndTest(context),
-              icon: const Icon(Icons.notifications_active),
-              label: const Text('Test scheduled notification'),
-            ),
+    final themeController = context.watch<ThemeController>();
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text('Appearance', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        SegmentedButton<ThemeMode>(
+          segments: const [
+            ButtonSegment(value: ThemeMode.system, label: Text('System')),
+            ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+            ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
           ],
+          selected: {themeController.themeMode},
+          onSelectionChanged: (modes) => themeController.setThemeMode(modes.first),
         ),
-      ),
+        const SizedBox(height: 24),
+        Text('Notifications', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        FilledButton.icon(
+          onPressed: () => _requestAndTest(context),
+          icon: const Icon(Icons.notifications_active),
+          label: const Text('Test scheduled notification'),
+        ),
+        const SizedBox(height: 12),
+        const ListTile(
+          leading: Icon(Icons.battery_alert_outlined),
+          title: Text('Battery optimization'),
+          subtitle: Text('Allow unrestricted/background activity for reliable nudges.'),
+        ),
+      ],
     );
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title, required this.icon});
-
-  final String title;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(height: 12),
-          Text(title, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 6),
-          const Text('Ready for the next step'),
-        ],
-      ),
-    );
-  }
-}

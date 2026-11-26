@@ -31,10 +31,19 @@ class NotificationService {
       importance: Importance.high,
     );
 
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await android?.createNotificationChannel(channel);
+
+    const toneChannels = [
+      AndroidNotificationChannel('actmind_gentle', 'ActMind gentle reminders', description: 'Daily gentle reminders before a deadline.', importance: Importance.defaultImportance),
+      AndroidNotificationChannel('actmind_reminder', 'ActMind reminders', description: 'Every-six-hour reminders for approaching deadlines.', importance: Importance.high),
+      AndroidNotificationChannel('actmind_urgent', 'ActMind urgent reminders', description: 'Every-two-hour urgent reminders for imminent deadlines.', importance: Importance.high),
+      AndroidNotificationChannel('actmind_very_urgent', 'ActMind very urgent reminders', description: 'Every-fifteen-minute reminders under one hour.', importance: Importance.max),
+      AndroidNotificationChannel('actmind_overdue', 'ActMind overdue reminders', description: 'Every-thirty-minute reminders after a deadline.', importance: Importance.max),
+    ];
+    for (final toneChannel in toneChannels) {
+      await android?.createNotificationChannel(toneChannel);
+    }
   }
 
   static Future<bool> requestNotificationPermission() async {
@@ -42,6 +51,13 @@ class NotificationService {
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
             ?.requestNotificationsPermission() ??
+        false;
+  }
+
+  static Future<bool> requestExactAlarmPermission() async {
+    return await _plugin
+            .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+            ?.requestExactAlarmsPermission() ??
         false;
   }
 
