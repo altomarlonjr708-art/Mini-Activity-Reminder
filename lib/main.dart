@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'data/app_database.dart';
+import 'data/task_provider.dart';
+import 'data/task_repository.dart';
 import 'ui/app_shell.dart';
 import 'ui/app_theme.dart';
 import 'ui/theme_controller.dart';
 
 void main() {
+  final database = AppDatabase();
+  final taskRepository = TaskRepository(database);
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeController(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeController()),
+        ChangeNotifierProvider(create: (_) => TaskProvider(taskRepository)),
+      ],
       child: const ActMindApp(),
     ),
   );
