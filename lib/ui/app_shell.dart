@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'home_screen.dart';
+import 'task_form_screen.dart';
+
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -18,7 +21,7 @@ class _AppShellState extends State<AppShell> {
   ];
 
   static const _screens = <Widget>[
-    _PlaceholderScreen(title: 'Tasks', icon: Icons.task),
+    HomeScreen(),
     _PlaceholderScreen(title: 'Calendar', icon: Icons.calendar_month),
     _PlaceholderScreen(title: 'Stats', icon: Icons.bar_chart),
     _PlaceholderScreen(title: 'Settings', icon: Icons.settings),
@@ -38,7 +41,10 @@ class _AppShellState extends State<AppShell> {
       ),
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-              onPressed: () {},
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TaskFormScreen()),
+              ),
               tooltip: 'Add task',
               child: const Icon(Icons.add),
             )
