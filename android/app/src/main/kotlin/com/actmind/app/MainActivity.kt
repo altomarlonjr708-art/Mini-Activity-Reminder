@@ -1,4 +1,4 @@
-package com.actmind.actmind
+package com.actmind.app
 
 import io.flutter.embedding.android.FlutterActivity
 
